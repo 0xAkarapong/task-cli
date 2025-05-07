@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "@types/bun": "^1.2.12",
+    "@types/node": "^22.15.15"
+  }
+}
