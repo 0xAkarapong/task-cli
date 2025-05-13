@@ -10,15 +10,19 @@ interface Task {
 
 let tasks: Task[] = [];
 
+try {
+        const raw = await Bun.file(filePath).text();
+        tasks = JSON.parse(raw);
+    } catch {
+        tasks = [];
+     }
+
+const saveTasks = async () => {
+    return Bun.write(filePath, JSON.stringify(tasks, null, 2));
+};
+
 switch (process.argv[2]) {
     case "add":
-        try {
-            const raw = await Bun.file(filePath).text();
-            tasks = JSON.parse(raw);
-        } catch {
-            tasks = [];
-        }
-        
         if (process.argv.length < 4) {
             console.error("Please provide a task description");
             process.exit(1);
@@ -38,23 +42,13 @@ switch (process.argv[2]) {
         };
         
         tasks.push(newTask);
-        await Bun.write(filePath, JSON.stringify(tasks, null, 2));
-        break;
+        await saveTasks();
+        process.exit(0);
 
     case "update":
         const id = process.argv[3]
         const description = process.argv[4];
-        try {
-            const raw = await Bun.file(filePath).text();
-            tasks = JSON.parse(raw);
-        } catch {
-            tasks = [];
-        }
-        if (process.argv.length < 5) {
-            console.error("Please provide a task ID and description");
-            process.exit(1);
-        }
-        
+
         const taskIndex = tasks.findIndex((task) => task.id === id);
         if (taskIndex === -1) {
             console.error("Task not found");
@@ -62,8 +56,12 @@ switch (process.argv[2]) {
         }
         tasks[taskIndex].description = description;
         tasks[taskIndex].updatedAt = new Date().toISOString();
-        await Bun.write(filePath, JSON.stringify(tasks, null, 2));
+        await saveTasks();
+        process.exit(0);
+
+    case "delete":
         break;
+
     case "mark-in-progress":
         break;
 
